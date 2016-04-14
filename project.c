@@ -105,6 +105,13 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
 
+    if(PC%4 = 0){
+        *instruction = Mem[ (PC >> 2) ];
+        return 1;
+    }
+    else
+        return 0;
+
 }
 
 
@@ -112,6 +119,15 @@ int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 /* 10 Points */
 void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
 {
+
+    *op = instruction	// instruction [31-26]
+	*r1 = instruction	// instruction [25-21]
+	*r2	= instruction   // instruction [20-16]
+	*r3	= instruction// instruction [15-11]
+	*funct = instruction	// instruction [5-0]
+	*offset = instruction	// instruction [15-0]
+	*jsec   = instruction// instruction [25-0]
+
 
 }
 
@@ -295,4 +311,3 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
 {
 
 }
-
