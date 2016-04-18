@@ -13,7 +13,7 @@ long twoPower(long pow){
     for(i = 0; i < pow; i++){
         result = 2 * result;
     }
-    
+
     return result;
 }
 
@@ -120,14 +120,39 @@ int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
 {
 
-    *op = instruction;	// instruction [31-26]
-	*r1 = instruction;	// instruction [25-21]
-	*r2	= instruction;  // instruction [20-16]
-	*r3	= instruction;  // instruction [15-11]
-	*funct = instruction;	// instruction [5-0]
-	*offset = instruction;	// instruction [15-0]
-	*jsec   = instruction; // instruction [25-0]
+    unsigned tmp;
 
+    // instruction [31-26]
+    tmp = instruction >> 26;
+    tmp = tmp & 0b00000000000000000000000000111111;
+    *op = tmp;
+
+    // instruction [25-21]
+    tmp = instruction >> 21;
+    tmp = tmp & 0b00000000000000000000000000011111;
+	*r1 = tmp;
+
+	// instruction [20-16]
+	tmp = instruction >> 16;
+	tmp = tmp & 0b00000000000000000000000000011111;
+	*r2	= tmp;
+
+	// instruction [15-11]
+	tmp = instruction >> 11;
+	tmp = tmp & 0b00000000000000000000000000011111;
+	*r3	= tmp;
+
+	// instruction [5-0]
+	tmp = instruction;
+	tmp = tmp & 0b00000000000000000000000000111111;
+	*funct = tmp;
+
+	// instruction [15-0]
+	tmp = instruction & 0b00000000000000001111111111111111;
+	*offset = tmp;
+
+	// instruction [25-0]
+	*jsec   = instruction & 0b00000011111111111111111111111111;
 
 }
 
@@ -300,7 +325,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 {
     //ALUSrc == 0 means we use data1 and data2 (R types)
     //ALUOp should always be 7 when ALUSrc is 0, so we use funct for our ALUControl
-    if(ALUSrc == '0') // && ALUOp == '7' )
+    if(ALUSrc == 0) // && ALUOp == '7' )
     {
         //funct is between 0 and 7. In order, they perform operations:
         //0.Add/"dont care,"  1.Subtract  2.Set less than  3.Unsigned set less than
@@ -309,7 +334,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
     }
 
     //ALUSrc == 1 means we use data1 and extended_value (I types & conditional branching)
-    else if(ALUSrc == '1')
+    else if(ALUSrc == 1)
     {
         //instead of data2 and funct, use extended_value and ALUOp respectively
         ALU(data1, extended_value, ALUOp, ALUresult, Zero);
@@ -317,14 +342,14 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 
     //ALUSrc 2 means we don't care (J types/ unconditional branching)
     //But we might still need to call ALU() incase we need Zero to be '0'
-    else if(ALUSrc == '2')
+    else if(ALUSrc == 2)
     {
        ALU(data1, data2, ALUOp, ALUresult, Zero);
     }
 
 
     //Halt if there is an illegal instruction
-    if(ALUOp > '7' ||  funct > '7' || ALUSrc > '2')
+    if(ALUOp > 7 ||  funct > 7 || ALUSrc > 2)
         return 1;
     return 0;
 }
@@ -411,7 +436,7 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
 {
     //If Jump is asserted we take the jump address (26 bits), shift it left 2 (28 bits),
     //then concatinate the upper 4 bits of PC + 4 to the higher-order bits (32 bits)
-    if(Jump == '1')
+    if(Jump == 1)
     {
         jsec = jsec << 2;
         *PC += 4;
@@ -422,7 +447,7 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
 
     //If Branch and Zero are asserted we take the extended_value, shift it left 2,
     //then add it to the current PC + 4
-    else if(Branch == '1' && Zero == '1')
+    else if(Branch == 1 && Zero == 1)
     {
         extended_value << 2;
         *PC += 4;
