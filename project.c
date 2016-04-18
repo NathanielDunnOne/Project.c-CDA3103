@@ -1,5 +1,8 @@
+
 #include "spimcore.h"
 
+#define TRUE 1
+#define FALSE 0
 
 // Helper function for convertToSigned
 long twoPower(long pow){
@@ -105,7 +108,7 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
 
-    if(PC%4 = 0){
+    if(PC%4 == 0){
         *instruction = Mem[ (PC >> 2) ];
         return 1;
     }
@@ -120,13 +123,13 @@ int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
 {
 
-    *op = instruction	// instruction [31-26]
-	*r1 = instruction	// instruction [25-21]
-	*r2	= instruction   // instruction [20-16]
-	*r3	= instruction// instruction [15-11]
-	*funct = instruction	// instruction [5-0]
-	*offset = instruction	// instruction [15-0]
-	*jsec   = instruction// instruction [25-0]
+    *op = instruction;	// instruction [31-26]
+	*r1 = instruction;	// instruction [25-21]
+	*r2	= instruction;  // instruction [20-16]
+	*r3	= instruction;  // instruction [15-11]
+	*funct = instruction;	// instruction [5-0]
+	*offset = instruction;	// instruction [15-0]
+	*jsec   = instruction; // instruction [25-0]
 
 
 }
@@ -307,22 +310,22 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
         //4.AND 5.OR 6.Shift left 16 bits 7. ~A/"NOT A"
         ALU(data1, data2, funct, ALUresult, Zero);
     }
-    
+
     //ALUSrc == 1 means we use data1 and extended_value (I types & conditional branching)
     else if(ALUSrc == '1')
     {
         //instead of data2 and funct, use extended_value and ALUOp respectively
         ALU(data1, extended_value, ALUOp, ALUresult, Zero);
     }
-    
+
     //ALUSrc 2 means we don't care (J types/ unconditional branching)
     //But we might still need to call ALU() incase we need Zero to be '0'
-    else if(ALUSrc == '2') 
-    { 
+    else if(ALUSrc == '2')
+    {
        ALU(data1, data2, ALUOp, ALUresult, Zero);
     }
-     
-        
+
+
     //Halt if there is an illegal instruction
     if(ALUOp > '7' ||  funct > '7' || ALUSrc > '2')
         return 1;
@@ -333,6 +336,34 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 /* 10 Points */
 int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
 {
+    //We initialize MemWrite to be True so we are storing the data
+    if(MemWrite == TRUE) {
+        //If we were to swap the values we would be loading the data not storing it.
+        Mem[ALUresult >> 2] = *memdata;
+        //halting the event
+        if(ALUresult % 4 != 0) {
+
+            return 1;
+
+        }
+
+        return 0;
+
+    }
+    //Since MemRead to True we are now loading the data
+    if(MemRead == TRUE) {
+        //If the data2 was after Men then we would be storing the value, but right now we are loading
+        data2 = Mem[ALUresult >> 2];
+        //halting the event
+        if(ALUresult % 4 != 0) {
+
+            return 1;
+
+        }
+
+        return 0;
+
+    }
 
 }
 
@@ -341,6 +372,39 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 /* 10 Points */
 void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,char RegWrite,char RegDst,char MemtoReg,unsigned *Reg)
 {
+    if(RegWrite == TRUE) {
+        //Only if the memory to the register
+        if(MemtoReg == TRUE) {
+
+            if(RegDst == TRUE) {
+
+                memdata = Reg[r3];
+
+            }
+
+            if(RegDst == FALSE) {
+
+                memdata = Reg[r2];
+
+            }
+
+        }
+
+        if(MemtoReg == FALSE) {
+
+            if(RegDst = TRUE) {
+
+                Reg[r3] = ALUresult;
+
+            }
+
+            if(RegDst == FALSE) {
+
+                Reg[r2] = ALUresult;
+            }
+        }
+
+    }
 
 }
 
@@ -358,8 +422,8 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
         *PC = *PC << 28; //this makes the 28 lower-order bits 0
         *PC = *PC ^ jsec;
     }
-    
-    //If Branch and Zero are asserted we take the extended_value, shift it left 2, 
+
+    //If Branch and Zero are asserted we take the extended_value, shift it left 2,
     //then add it to the current PC + 4
     else if(Branch == '1' && Zero == '1')
     {
@@ -367,8 +431,8 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
         *PC += 4;
         *PC += extended_value;
     }
-    
+
     //If both Jump and Branch are deasserted, just increment the PC by 4
-    else 
+    else
         *PC += 4;
 }
