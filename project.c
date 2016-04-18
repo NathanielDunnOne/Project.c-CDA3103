@@ -272,7 +272,9 @@ int instruction_decode(unsigned op,struct_controls *controls)
 /* 5 Points */
 void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigned *data2)
 {
-
+    // Read registers at address r1 and r2 and write them into data1 and data2
+    *data1 = Reg[r1];
+    *data2 = Reg[r2];
 }
 
 
@@ -280,7 +282,16 @@ void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigne
 /* 10 Points */
 void sign_extend(unsigned offset,unsigned *extended_value)
 {
-
+    // If the 16th bit is 0, the offset value is positive, so
+    // it doesn't have to be changed
+    if(offset < twoPower(15)){
+        *extended_value = offset;
+    }
+    // Otherwise, the 16th bit is 1, and the offset value is a negative,
+    // so fill bits 17-32 with 1s
+    else{
+        *extended_value = offset | 0b11111111111111110000000000000000;
+    }
 }
 
 /* ALU operations */
