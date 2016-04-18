@@ -369,8 +369,6 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 
         }
 
-        return 0;
-
     }
     //Since MemRead to True we are now loading the data
     if(MemRead == TRUE) {
@@ -383,9 +381,9 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 
         }
 
-        return 0;
-
     }
+
+    return 0;
 
 }
 
@@ -414,7 +412,7 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 
         if(MemtoReg == FALSE) {
 
-            if(RegDst = TRUE) {
+            if(RegDst == TRUE) {
 
                 Reg[r3] = ALUresult;
 
@@ -449,7 +447,7 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
     //then add it to the current PC + 4
     else if(Branch == 1 && Zero == 1)
     {
-        extended_value << 2;
+        extended_value = extended_value << 2;
         *PC += 4;
         *PC += extended_value;
     }
