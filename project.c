@@ -298,7 +298,35 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 /* 10 Points */
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
-
+    //ALUSrc == 0 means we use data1 and data2 (R types)
+    //ALUOp should always be 7 when ALUSrc is 0, so we use funct for our ALUControl
+    if(ALUSrc == '0') // && ALUOp == '7' )
+    {
+        //funct is between 0 and 7. In order, they perform operations:
+        //0.Add/"dont care,"  1.Subtract  2.Set less than  3.Unsigned set less than
+        //4.AND 5.OR 6.Shift left 16 bits 7. ~A/"NOT A"
+        ALU(data1, data2, funct, ALUresult, Zero);
+    }
+    
+    //ALUSrc == 1 means we use data1 and extended_value (I types & conditional branching)
+    else if(ALUSrc == '1')
+    {
+        //instead of data2 and funct, use extended_value and ALUOp respectively
+        ALU(data1, extended_value, ALUOp, ALUresult, Zero);
+    }
+    
+    //ALUSrc 2 means we don't care (J types/ unconditional branching)
+    //But we might still need to call ALU() incase we need Zero to be '0'
+    else if(ALUSrc == '2') 
+    { 
+       ALU(data1, data2, ALUOp, ALUresult, Zero);
+    }
+     
+        
+    //Halt if there is an illegal instruction
+    if(ALUOp > '7' ||  funct > '7' || ALUSrc > '2')
+        return 1;
+    return 0;
 }
 
 /* Read / Write Memory */
@@ -320,5 +348,27 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 /* 10 Points */
 void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char Zero,unsigned *PC)
 {
-
+    //If Jump is asserted we take the jump address (26 bits), shift it left 2 (28 bits),
+    //then concatinate the upper 4 bits of PC + 4 to the higher-order bits (32 bits)
+    if(Jump == '1')
+    {
+        jsec = jsec << 2;
+        *PC += 4;
+        *PC = *PC >> 28; //
+        *PC = *PC << 28; //this makes the 28 lower-order bits 0
+        *PC = *PC ^ jsec;
+    }
+    
+    //If Branch and Zero are asserted we take the extended_value, shift it left 2, 
+    //then add it to the current PC + 4
+    else if(Branch == '1' && Zero == '1')
+    {
+        extended_value << 2;
+        *PC += 4;
+        *PC += extended_value;
+    }
+    
+    //If both Jump and Branch are deasserted, just increment the PC by 4
+    else 
+        *PC += 4;
 }
