@@ -13,8 +13,7 @@ long twoPower(long pow){
     for(i = 0; i < pow; i++){
         result = 2 * result;
     }
-
-    printf("%ld\n", result);
+    
     return result;
 }
 
@@ -26,8 +25,6 @@ long convertToSigned(unsigned a){
     int i;
     long j;
     long maxU = -2147483647;
-
-    printf("%u\n", a);
 
     // Create a binary representation of a in an array
     for(i = 31; i >= 0; i--){
