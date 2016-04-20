@@ -107,10 +107,10 @@ int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 
     if(PC%4 == 0){
         *instruction = Mem[ (PC >> 2) ];
-        return 1;
+        return 0;
     }
     else
-        return 0;
+        return 1;
 
 }
 
@@ -398,13 +398,13 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 
             if(RegDst == TRUE) {
 
-                memdata = Reg[r3];
+                Reg[r3] = memdata;
 
             }
 
             if(RegDst == FALSE) {
 
-                memdata = Reg[r2];
+                Reg[r2] = memdata;
 
             }
 
@@ -440,7 +440,7 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
         *PC += 4;
         *PC = *PC >> 28; //
         *PC = *PC << 28; //this makes the 28 lower-order bits 0
-        *PC = *PC ^ jsec;
+        *PC = *PC + jsec;
     }
 
     //If Branch and Zero are asserted we take the extended_value, shift it left 2,
