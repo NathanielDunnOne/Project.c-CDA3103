@@ -364,10 +364,6 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
         ALUOp = 7;
         break;
 
-
-
-
-
             ALU(data1, extended_value, ALUOp, ALUresult, Zero);
 
             }
