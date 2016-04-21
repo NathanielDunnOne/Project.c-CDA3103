@@ -4,73 +4,19 @@
 #define TRUE 1
 #define FALSE 0
 
-// Helper function for convertToSigned
-long twoPower(long pow){
-
-    long result = 1;
-    int i;
-
-    for(i = 0; i < pow; i++){
-        result = 2 * result;
-    }
-
-    return result;
-}
-
-// Convert an unsigned number to a signed number
-long convertToSigned(unsigned a){
-
-    unsigned copy = a;
-    int array[32];
-    int i;
-    long j;
-    long maxU = -2147483647;
-
-    // Create a binary representation of a in an array
-    for(i = 31; i >= 0; i--){
-        copy = copy/2;
-        if(copy%2 != 0){
-            array[i] = 1;
-        }
-        else
-            array[i] = 0;
-    }
-
-    // If the first position in the array is a 0, then the number is
-    // positive, and a doesn't change
-    if(array[0] == 0){
-        return a;
-    }
-
-    // Otherwise, convert it to unsigned by taking the minimum possible signed
-    // number and adding 2^j for every position of 1
-    for(i = 1, j = 30; i < 32; i++, j--){
-        if(array[i] == 1){
-            maxU = maxU + twoPower(j);
-        }
-    }
-
-    // Return the unsigned number
-    return maxU - 1;
-}
+/
 
 /* ALU */
 /* 10 Points */
 void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 {
     if(ALUControl == 0){
-        A = convertToSigned(A);
-        B = convertToSigned(B);
         *ALUresult = A + B;
     }
     if(ALUControl == 1){
-        A = convertToSigned(A);
-        B = convertToSigned(B);
         *ALUresult = A - B;
     }
     if(ALUControl == 2){
-        A = convertToSigned(A);
-        B = convertToSigned(B);
         if(A < B)
             *ALUresult = 1;
         else
@@ -104,8 +50,9 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 /* 10 Points */
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
-    //Send the PC counter and fetch the intruction from that memory
+    //Send the PC counter and fetch the next instruction from that memory
     if(PC%4 == 0){
+        //Get the next instruction stored at PC
         *instruction = Mem[ (PC >> 2) ];
         return 0;
     }
@@ -309,7 +256,7 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 {
     // If the 16th bit is 0, the offset value is positive, so
     // it doesn't have to be changed
-    if(offset < twoPower(15)){
+    if(offset < 32768){
         *extended_value = offset;
     }
     // Otherwise, the 16th bit is 1, and the offset value is a negative,
@@ -323,65 +270,36 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 /* 10 Points */
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
-
-    if(ALUSrc == 1)
+    //ALUSrc == 0 means we use data1 and data2 (R types)
+    //ALUOp should always be 7 when ALUSrc is 0, so we use funct for our ALUControl
+    if(ALUSrc == 0) // && ALUOp == '7' )
     {
-      data2 = extended_value;
+        //funct is between 0 and 7. In order, they perform operations:
+        //0.Add/"dont care,"  1.Subtract  2.Set less than  3.Unsigned set less than
+        //4.AND 5.OR 6.Shift left 16 bits 7. ~A/"NOT A"
+        ALU(data1, data2, funct, ALUresult, Zero);
     }
 
-    if(ALUOp == 7) {
-
-        switch(funct) {
-
-        case 32: //Add
-        ALUOp = 0;
-        break;
-
-        case 34: //Subtract
-        ALUOp = 1;
-        break;
-
-        case 36: //AND
-        ALUOp = 4;
-        break;
-
-        case 37: //OR
-        ALUOp = 5;
-        break;
-
-        case 42: //Signed less than
-        ALUOp = 2;
-        break;
-
-        case 43: //Unsigned less than
-        ALUOp = 3;
-
-        case 6: //Shift 16 bits left
-        ALUOp = 6;
-        break;
-
-        case 7: //Not
-        ALUOp = 7;
-        break;
-        
-        default:
-        return 1; //Halt
-
-            }
-            
-    ALU(data1, extended_value, ALUOp, ALUresult, Zero);
-    
-    }
-
-    else {
-
+    //ALUSrc == 1 means we use data1 and extended_value (I types & conditional branching)
+    else if(ALUSrc == 1)
+    {
+        //instead of data2 and funct, use extended_value and ALUOp respectively
         ALU(data1, extended_value, ALUOp, ALUresult, Zero);
-
     }
 
+    //ALUSrc 2 means we don't care (J types/ unconditional branching)
+    //But we might still need to call ALU() incase we need Zero to be '0'
+    else if(ALUSrc == 2)
+    {
+       ALU(data1, data2, ALUOp, ALUresult, Zero);
+    }
+
+
+    //Halt if there is an illegal instruction
+    if(ALUOp > 7 ||  funct > 7 || ALUSrc > 2)
+        return 1;
     return 0;
 }
-
 
 /* Read / Write Memory */
 /* 10 Points */
@@ -438,16 +356,16 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
             }
 
         }
-	//If MemtoReg is false then it skips reading in the data.
+        //If MemtoReg is false then it skips reading in the data.
         //It goes from ALUresult to the MemtoReg multiplexer.
         if(MemtoReg == FALSE) {
-	    //Register destination of the instruction.
+            //Register destination of the instruction.
             if(RegDst == TRUE) {
 
                 Reg[r3] = ALUresult;
 
             }
-	    //Register destination of the instruction.
+            //Register destination of the instruction.
             if(RegDst == FALSE) {
 
                 Reg[r2] = ALUresult;
