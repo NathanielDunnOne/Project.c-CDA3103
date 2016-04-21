@@ -1,11 +1,6 @@
 
 #include "spimcore.h"
 
-#define TRUE 1
-#define FALSE 0
-
-/
-
 /* ALU */
 /* 10 Points */
 void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
@@ -17,7 +12,7 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
         *ALUresult = A - B;
     }
     if(ALUControl == 2){
-        if(A < B)
+        if((signed)A < (signed)B)
             *ALUresult = 1;
         else
             *ALUresult = 0;
@@ -77,17 +72,17 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsi
     // instruction [25-21]
     tmp = instruction >> 21;
     tmp = tmp & 0b00000000000000000000000000011111;
-	*r1 = tmp;
+  *r1 = tmp;
 
     // instruction [20-16]
     tmp = instruction >> 16;
     tmp = tmp & 0b00000000000000000000000000011111;
-    *r2	= tmp;
+    *r2 = tmp;
 
     // instruction [15-11]
     tmp = instruction >> 11;
     tmp = tmp & 0b00000000000000000000000000011111;
-    *r3	= tmp;
+    *r3 = tmp;
 
     // instruction [5-0]
     tmp = instruction;
@@ -110,7 +105,7 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsi
 int instruction_decode(unsigned op,struct_controls *controls)
 {
     // R type
-    if(op == 0){
+    if((int)op == 0){
         controls->RegDst = 1;
         controls->Jump = 0;
         controls->Branch = 0;
@@ -124,7 +119,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
     }
 
     // Add immediate
-    if(op == 8){
+    if((int)op == 8){
         controls->RegDst = 0;
         controls->Jump = 0;
         controls->Branch = 0;
@@ -138,7 +133,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
     }
 
     // Load word
-    if(op == 35){
+    if((int)op == 35){
         controls->RegDst = 0;
         controls->Jump = 0;
         controls->Branch = 0;
@@ -152,7 +147,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
     }
 
     // Store word
-    if(op == 43){
+    if((int)op == 43){
         controls->RegDst = 2;
         controls->Jump = 0;
         controls->Branch = 0;
@@ -166,7 +161,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
     }
 
     // Load upper immediate
-    if(op == 15){
+    if((int)op == 15){
         controls->RegDst = 1;
         controls->Jump = 0;
         controls->Branch = 0;
@@ -180,7 +175,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
     }
 
     // Branch on equal
-    if(op == 4){
+    if((int)op == 4){
         controls->RegDst = 2;
         controls->Jump = 0;
         controls->Branch = 1;
@@ -194,7 +189,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
     }
 
     // Set less than immediate
-    if(op == 10){
+    if((int)op == 10){
         controls->RegDst = 0;
         controls->Jump = 0;
         controls->Branch = 0;
@@ -208,7 +203,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
     }
 
     // Set less than immediate unsigned
-    if(op == 11){
+    if((int)op == 11){
         controls->RegDst = 0;
         controls->Jump = 0;
         controls->Branch = 0;
@@ -222,7 +217,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
     }
 
     // Jump
-    if(op == 2){
+    if((int)op == 2){
         controls->RegDst = 1;
         controls->Jump = 1;
         controls->Branch = 0;
@@ -256,8 +251,8 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 {
     // If the 16th bit is 0, the offset value is positive, so
     // it doesn't have to be changed
-    if(offset < 32768){
-        *extended_value = offset;
+    if(offset >> 15 == 0){
+        *extended_value = offset & 0x0000FFFF;
     }
     // Otherwise, the 16th bit is 1, and the offset value is a negative,
     // so fill bits 17-32 with 1s
@@ -278,7 +273,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 
     if(ALUOp == 7) {
 
-        switch(funct) {
+        switch((int)funct) {
 
         case 32: //Add
         ALUOp = 0;
@@ -311,21 +306,20 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
         ALUOp = 7;
         break;
 
-
-            ALU(data1, extended_value, ALUOp, ALUresult, Zero);
+        default:
+            return 1;
 
             }
+
+        ALU(data1, data2, ALUOp, ALUresult, Zero);
+
     }
 
     else {
 
-        ALU(data1, extended_value, ALUOp, ALUresult, Zero);
+        ALU(data1, data2, ALUOp, ALUresult, Zero);
 
     }
-
-    //Halt if there is an illegal instruction
-    if(ALUOp > 7 ||  funct > 43 || ALUSrc > 1)
-        return 1;
 
     return 0;
 }
@@ -336,7 +330,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
 {
     //We initialize MemWrite to be True so we are storing the data
-    if(MemWrite == TRUE) {
+    if(MemWrite == 1) {
         //If we were to swap the values we would be loading the data not storing it.
         Mem[ALUresult >> 2] = *memdata;
         //halting the event
@@ -348,7 +342,7 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 
     }
     //Since MemRead to True we are now loading the data
-    if(MemRead == TRUE) {
+    if(MemRead == 1) {
         //If the data2 was after Men then we would be storing the value, but right now we are loading
         data2 = Mem[ALUresult >> 2];
         //Halting the event
@@ -369,18 +363,18 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 /* 10 Points */
 void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,char RegWrite,char RegDst,char MemtoReg,unsigned *Reg)
 {
-    if(RegWrite == TRUE) {
+    if(RegWrite == 1) {
         //Only if the memory to the register
-        if(MemtoReg == TRUE) {
-	    //Register destination of the instruction
-            if(RegDst == TRUE) {
-		//instructions from [15-11]
+        if(MemtoReg == 1) {
+      //Register destination of the instruction
+            if(RegDst == 1) {
+    //instructions from [15-11]
                 Reg[r3] = memdata;
 
             }
-	    //Register destination of the instruction
-            if(RegDst == FALSE) {
-		//instruction from [20-16]
+      //Register destination of the instruction
+            if(RegDst == 0) {
+    //instruction from [20-16]
                 Reg[r2] = memdata;
 
             }
@@ -388,15 +382,15 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
         }
         //If MemtoReg is false then it skips reading in the data.
         //It goes from ALUresult to the MemtoReg multiplexer.
-        if(MemtoReg == FALSE) {
+        if(MemtoReg == 0) {
             //Register destination of the instruction.
-            if(RegDst == TRUE) {
+            if(RegDst == 1) {
 
                 Reg[r3] = ALUresult;
 
             }
             //Register destination of the instruction.
-            if(RegDst == FALSE) {
+            if(RegDst == 0) {
 
                 Reg[r2] = ALUresult;
             }
