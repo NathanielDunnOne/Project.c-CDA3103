@@ -270,36 +270,66 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 /* 10 Points */
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
-    //ALUSrc == 0 means we use data1 and data2 (R types)
-    //ALUOp should always be 7 when ALUSrc is 0, so we use funct for our ALUControl
-    if(ALUSrc == 0) // && ALUOp == '7' )
+
+    if(ALUSrc == 1)
     {
-        //funct is between 0 and 7. In order, they perform operations:
-        //0.Add/"dont care,"  1.Subtract  2.Set less than  3.Unsigned set less than
-        //4.AND 5.OR 6.Shift left 16 bits 7. ~A/"NOT A"
-        ALU(data1, data2, funct, ALUresult, Zero);
+      data2 = extended_value;
     }
 
-    //ALUSrc == 1 means we use data1 and extended_value (I types & conditional branching)
-    else if(ALUSrc == 1)
-    {
-        //instead of data2 and funct, use extended_value and ALUOp respectively
+    if(ALUOp == 7) {
+
+        switch(funct) {
+
+        case 32: //Add
+        ALUOp = 0;
+        break;
+
+        case 34: //Subtract
+        ALUOp = 1;
+        break;
+
+        case 36: //AND
+        ALUOp = 4;
+        break;
+
+        case 37: //OR
+        ALUOp = 5;
+        break;
+
+        case 42: //Signed less than
+        ALUOp = 2;
+        break;
+
+        case 43: //Unsigned less than
+        ALUOp = 3;
+
+        case 6: //Shift 16 bits left
+        ALUOp = 6;
+        break;
+
+        case 7: //Not
+        ALUOp = 7;
+        break;
+
+
+            ALU(data1, extended_value, ALUOp, ALUresult, Zero);
+
+            }
+    }
+
+    else {
+
         ALU(data1, extended_value, ALUOp, ALUresult, Zero);
-    }
 
-    //ALUSrc 2 means we don't care (J types/ unconditional branching)
-    //But we might still need to call ALU() incase we need Zero to be '0'
-    else if(ALUSrc == 2)
-    {
-       ALU(data1, data2, ALUOp, ALUresult, Zero);
     }
-
 
     //Halt if there is an illegal instruction
-    if(ALUOp > 7 ||  funct > 7 || ALUSrc > 2)
+    if(ALUOp > 7 ||  funct > 43 || ALUSrc > 1)
         return 1;
+
     return 0;
 }
+
 
 /* Read / Write Memory */
 /* 10 Points */
