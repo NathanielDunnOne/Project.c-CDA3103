@@ -162,7 +162,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 
     // Load upper immediate
     if((int)op == 15){
-        controls->RegDst = 1;
+        controls->RegDst = 0;
         controls->Jump = 0;
         controls->Branch = 0;
         controls->MemRead = 0;
@@ -218,7 +218,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 
     // Jump
     if((int)op == 2){
-        controls->RegDst = 1;
+        controls->RegDst = 0;
         controls->Jump = 1;
         controls->Branch = 0;
         controls->MemRead = 0;
