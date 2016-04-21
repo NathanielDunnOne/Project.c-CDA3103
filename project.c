@@ -363,10 +363,14 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
         case 7: //Not
         ALUOp = 7;
         break;
-
-            ALU(data1, extended_value, ALUOp, ALUresult, Zero);
+        
+        default:
+        return 1; //Halt
 
             }
+            
+    ALU(data1, extended_value, ALUOp, ALUresult, Zero);
+    
     }
 
     else {
@@ -374,10 +378,6 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
         ALU(data1, extended_value, ALUOp, ALUresult, Zero);
 
     }
-
-    //Halt if there is an illegal instruction
-    if(ALUOp > 7 ||  funct > 43 || ALUSrc > 1)
-        return 1;
 
     return 0;
 }
