@@ -132,27 +132,27 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsi
     tmp = tmp & 0b00000000000000000000000000011111;
 	*r1 = tmp;
 
-	// instruction [20-16]
-	tmp = instruction >> 16;
-	tmp = tmp & 0b00000000000000000000000000011111;
-	*r2	= tmp;
+    // instruction [20-16]
+    tmp = instruction >> 16;
+    tmp = tmp & 0b00000000000000000000000000011111;
+    *r2	= tmp;
 
-	// instruction [15-11]
-	tmp = instruction >> 11;
-	tmp = tmp & 0b00000000000000000000000000011111;
-	*r3	= tmp;
+    // instruction [15-11]
+    tmp = instruction >> 11;
+    tmp = tmp & 0b00000000000000000000000000011111;
+    *r3	= tmp;
 
-	// instruction [5-0]
-	tmp = instruction;
-	tmp = tmp & 0b00000000000000000000000000111111;
-	*funct = tmp;
+    // instruction [5-0]
+    tmp = instruction;
+    tmp = tmp & 0b00000000000000000000000000111111;
+    *funct = tmp;
 
-	// instruction [15-0]
-	tmp = instruction & 0b00000000000000001111111111111111;
-	*offset = tmp;
+    // instruction [15-0]
+    tmp = instruction & 0b00000000000000001111111111111111;
+    *offset = tmp;
 
-	// instruction [25-0]
-	*jsec   = instruction & 0b00000011111111111111111111111111;
+    // instruction [25-0]
+    *jsec   = instruction & 0b00000011111111111111111111111111;
 
 }
 
