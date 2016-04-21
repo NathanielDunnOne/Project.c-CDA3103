@@ -104,7 +104,7 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 /* 10 Points */
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
-
+    //Send the PC counter and fetch the intruction from that memory
     if(PC%4 == 0){
         *instruction = Mem[ (PC >> 2) ];
         return 0;
