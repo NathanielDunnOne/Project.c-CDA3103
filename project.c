@@ -72,7 +72,7 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsi
     // instruction [25-21]
     tmp = instruction >> 21;
     tmp = tmp & 0b00000000000000000000000000011111;
-  *r1 = tmp;
+    *r1 = tmp;
 
     // instruction [20-16]
     tmp = instruction >> 16;
@@ -331,27 +331,26 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 {
     //We initialize MemWrite to be True so we are storing the data
     if(MemWrite == 1) {
-        //If we were to swap the values we would be loading the data not storing it.
-        Mem[ALUresult >> 2] = *memdata;
         //halting the event
         if(ALUresult % 4 != 0) {
 
             return 1;
 
         }
-
+        //If we were to swap the values we would be loading the data not storing it.
+        Mem[ALUresult >> 2] = data2;
     }
     //Since MemRead to True we are now loading the data
     if(MemRead == 1) {
-        //If the data2 was after Men then we would be storing the value, but right now we are loading
-        data2 = Mem[ALUresult >> 2];
+
         //Halting the event
         if(ALUresult % 4 != 0) {
 
             return 1;
-
         }
 
+    //If the data2 was after Men then we would be storing the value, but right now we are loading
+        *memdata = Mem[ALUresult >> 2];
     }
 
     return 0;
