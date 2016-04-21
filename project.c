@@ -374,7 +374,7 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
     if(MemRead == TRUE) {
         //If the data2 was after Men then we would be storing the value, but right now we are loading
         data2 = Mem[ALUresult >> 2];
-        //halting the event
+        //Halting the event
         if(ALUresult % 4 != 0) {
 
             return 1;
@@ -395,15 +395,15 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
     if(RegWrite == TRUE) {
         //Only if the memory to the register
         if(MemtoReg == TRUE) {
-
+	    //Register destination of the instruction
             if(RegDst == TRUE) {
-
+		//instructions from [15-11]
                 Reg[r3] = memdata;
 
             }
-
+	    //Register destination of the instruction
             if(RegDst == FALSE) {
-
+		//instruction from [20-16]
                 Reg[r2] = memdata;
 
             }
