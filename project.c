@@ -409,15 +409,16 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
             }
 
         }
-
+	//If MemtoReg is false then it skips reading in the data.
+        //It goes from ALUresult to the MemtoReg multiplexer.
         if(MemtoReg == FALSE) {
-
+	    //Register destination of the instruction.
             if(RegDst == TRUE) {
 
                 Reg[r3] = ALUresult;
 
             }
-
+	    //Register destination of the instruction.
             if(RegDst == FALSE) {
 
                 Reg[r2] = ALUresult;
